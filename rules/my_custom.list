@@ -1,11 +1,7 @@
-# 自定义分流
+# 自定义分流 神龙机场
 host-suffix,sub.wxhby.com,美国节点
 
-host,apple-relay.apple.com,美国节点
-host,apple-relay.fastly-edge.com,美国节点
-host,apple-relay.cloudflare.com,美国节点
-host,apps.mzstatic.com,美国节点
-
+# Apple Intelligence
 host,apple-relay.apple.com,美国节点
 host,apple-relay.fastly-edge.com,美国节点
 host,apple-relay.cloudflare.com,美国节点
@@ -18,6 +14,7 @@ host,*.smoot.apple.com,美国节点
 host-suffix,apple-relay.akamaized.net,美国节点
 host-suffix,apple-relay.mask.apple-dns.net,美国节点
 
+# 网易云音乐听歌统计
 host-suffix,clientlog.music.163.com,direct
 host-suffix,clientlog3.music.163.com,direct
 host-suffix,clientlogdep.music.163.com,direct
@@ -26,4 +23,3 @@ host-suffix,httpdns.music.163.com,direct
 host-suffix,sentry.music.163.com,direct
 host-suffix,netapm.music.163.com,direct
 
-;host-suffix,bby011.com,direct
