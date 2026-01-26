@@ -1,0 +1,50 @@
+name: QX Builder
+
+# 触发机制
+on:
+  schedule:
+    # 北京时间每天早上 06:00 自动运行 (UTC 22:00)
+    - cron: '0 22 * * *'
+  workflow_dispatch: # 允许你在 GitHub 网页上手动点按钮运行
+  push:
+    # 只有当以下目录的文件发生变动时才触发，避免改个 README 也跑一遍
+    paths:
+      - 'profiles/**'
+      - 'rules/**'
+      - 'src/**'
+      - 'requirements.txt'
+
+# 权限设置：允许 Action 修改仓库内容 (为了提交生成的 .conf 文件)
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取代码
+      - uses: actions/checkout@v3
+
+      # 2. 准备 Python 环境
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. 执行构建脚本
+      - name: Run Builder
+        run: python src/main.py
+
+      # 5. 提交生成的文件回仓库
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "QX Builder"
+          # 添加生成的文件
+          git add MyQuantumultX.conf
+          # 如果文件有变化则提交，没变化则跳过 (防止报错)
+          git diff-index --quiet HEAD || git commit -m "Auto-build config $(date +'%Y-%m-%d')"
+          git push
