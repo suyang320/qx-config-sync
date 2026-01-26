@@ -15,18 +15,6 @@ base:
   url: "https://ddgksf2013.top/Profile/QuantumultX.conf"
 
 # ------------------------------------------------------------------------------
-# [通用] 全局设置 (General)
-# ------------------------------------------------------------------------------
-# 这里的 Key-Value 会强制覆盖底包中的对应项
-general:
-  # [强烈推荐] 强制修复 GeoIP 源 (解决 2019 年数据过时问题)
-  geoip-url: "https://github.com/Hackl0us/GeoIP2-CN/raw/release/Country.mmdb"
-  # [可选] 修改资源解析器
-  resource_parser_url: "https://raw.githubusercontent.com/KOP-XIAO/QuantumultX/master/Scripts/resource-parser.js"
-  # [可选] 修改测速地址
-  server_check_url: "http://www.gstatic.com/generate_204"
-
-# ------------------------------------------------------------------------------
 # [清洗] 补丁排除 (Patches)
 # ------------------------------------------------------------------------------
 # 在注入新规则前，先“删掉”底包里你不想要的内容
@@ -36,15 +24,29 @@ patches:
     keywords:
       - "Hijacking"   # 删掉名字里带 Hijacking 的策略组
       - "广告"         # 删掉名字里带 广告 的策略组
-      - "static"
+      - "static"      # 删除名字里带 static的策略组
+      - "url-latency-benchmark" # 移除策略
 
   # 2. 排除不需要的 DNS
   dns:
+    # 移除no-ipv6配置，开启ipv6
     keywords: ["google","no-ipv6"]
 
   # 3. 排除不需要的本地分流 (慎用)
   # filter_local:
   #   keywords: ["reject"]
+
+# ------------------------------------------------------------------------------
+# [通用] 全局设置 (General)
+# ------------------------------------------------------------------------------
+# 这里的 Key-Value 会强制覆盖底包中的对应项
+general:
+# [强烈推荐] 强制修复 GeoIP 源 (解决 2019 年数据过时问题)
+# geoip-url: "https://github.com/Hackl0us/GeoIP2-CN/raw/release/Country.mmdb"
+# [可选] 修改资源解析器
+# resource_parser_url: "https://raw.githubusercontent.com/KOP-XIAO/QuantumultX/master/Scripts/resource-parser.js"
+# [可选] 修改测速地址
+# server_check_url: "http://www.gstatic.com/generate_204"
 
 # ------------------------------------------------------------------------------
 # [映射] 策略组映射 (Policy Map)
@@ -62,16 +64,25 @@ policy_map:
 # ------------------------------------------------------------------------------
 # 1. 自定义策略组
 policy:
-  - "static=苹果服务, direct, 香港节点, 台湾节点, 美国节点, 美国节点自动, 日本节点, 狮城节点, proxy, 手动, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Apple.png"
-  - "static=全球加速, direct, 香港节点, 台湾节点, 日本节点, 狮城节点, 美国节点, 美国节点自动, proxy, 手动, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Global.png"
-  - "static=哔哩哔哩, direct, 香港节点, 台湾节点, 手动, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/bilibili.png"
-  - "static=声田音乐, 美国节点, 美国节点自动, direct, 台湾节点, 香港节点, 日本节点, 狮城节点, proxy, 手动, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Spotify.png"
-  - "static=国际媒体, 台湾节点, direct, 香港节点, 日本节点, 美国节点, 美国节点自动, 狮城节点, proxy, 手动, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Streaming.png"
-  - "static=兜底分流, 全球加速, direct, 香港节点, 台湾节点, 日本节点, 狮城节点, 美国节点, 美国节点自动, proxy, 手动, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Final.png"
+  - "static=苹果服务, direct, 香港节点, 台湾节点, 美国节点, 日本节点, 狮城节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Apple.png"
+  - "static=全球加速, direct, 香港节点, 台湾节点, 日本节点, 狮城节点, 美国节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Global.png"
+  - "static=哔哩哔哩, direct, 香港节点, 台湾节点, 手动选择, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/bilibili.png"
+  - "static=声田音乐, 美国节点, direct, 台湾节点, 香港节点, 日本节点, 狮城节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Spotify.png"
+  - "static=国际媒体, 台湾节点, direct, 香港节点, 日本节点, 美国节点, 狮城节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Streaming.png"
+  - "static=兜底分流, 全球加速, direct, 香港节点, 台湾节点, 日本节点, 狮城节点, 美国节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Final.png"
   - "static=家庭网络, direct, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Home.png"
-  - "static=美国节点, server-tag-regex=(?=.*(美|US|(?i)States|American))^((?!(港|台|日|韩|新)).)*$,  img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png"
-  - "static=手动, server-tag-regex=.*, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png"
 
+#默认设置15分钟测速一次，可自行修改check-interval=后面的数值（单位：秒），tolerance=后面的数值不建议修改
+#将下面的url-latency-benchmark的内容替换成static，并删除[check-interval=900, tolerance=0, ]即可手动选择节点
+
+  - "static=手动选择, server-tag-regex=.*, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png"
+  - "static=美国节点, server-tag-regex=(?=.*(美|US|(?i)States|American))^((?!(港|台|日|韩|新)).)*$,  img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png"
+  - "url-latency-benchmark=自动选择, server-tag-regex=^(?!.*(?:网易|墨鱼)).*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png"
+  - "url-latency-benchmark=香港节点, server-tag-regex=(?=.*(港|HK|(?i)Hong))^((?!(台|日|韩|新|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/HK.png"
+  - "url-latency-benchmark=台湾节点, server-tag-regex=(?=.*(台|TW|(?i)Taiwan))^((?!(港|日|韩|新|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/TW.png"
+  - "url-latency-benchmark=日本节点, server-tag-regex=(?=.*(日|JP|(?i)Japan))^((?!(港|台|韩|新|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/JP.png"
+  - "url-latency-benchmark=狮城节点, server-tag-regex=(?=.*(新|狮|獅|SG|(?i)Singapore))^((?!(港|台|日|韩|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/SG.png"
+  #- "url-latency-benchmark=美国节点, server-tag-regex=(?=.*(美|US|(?i)States|American))^((?!(港|台|日|韩|新)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png"
 # 2. 自定义 DNS
 dns:
   - "server=/suversal.com/192.168.1.1"    # 你的域名走内网DNS
@@ -86,8 +97,7 @@ local_filters:
     # 方式A: 引用 rules 目录下的文件 (如果文件不存在，脚本会自动跳过不报错)
     - "file://rules/my_custom.list"
     # 方式B: 直接写在这里
-    - "host-suffix, suversal.com, direct, tag=我的网站"
-    - "ip-cidr, 192.168.0.0/16, direct, tag=局域网直连"
+    - "ip-cidr, 192.168.0.0/16, direct, tag=家庭网络"
     # IPv6 直连（所有 IPv6 流量不走代理）
     - "ip6-cidr, ::/0, direct"
 

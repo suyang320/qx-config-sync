@@ -1,5 +1,7 @@
 # 自定义分流 神龙机场
 host-suffix,sub.wxhby.com,美国节点
+# 我的网站域名
+host-suffix,suversal.com,direct
 
 # Apple Intelligence
 host,apple-relay.apple.com,美国节点
