@@ -53,11 +53,9 @@ general:
 # ------------------------------------------------------------------------------
 # 作用：将外部规则的 tag 映射到底包真实的策略组名 (Emoji)
 policy_map:
-  proxy: "美国节点"      # 外部规则叫 proxy -> 实际走 🚀 节点选择
-  streaming: "国际媒体"  # 外部规则叫 streaming -> 实际走 🌍 国外媒体
+  gpt: "美国节点"      # 外部规则叫 proxy -> 实际走 🚀 节点选择
   direct: "direct"
   reject: "reject"
-  my_home: "家庭网络"    # 映射下面自定义的组
 
 # ------------------------------------------------------------------------------
 # [定义] 策略与 DNS
@@ -71,18 +69,18 @@ policy:
   - "static=国际媒体, 台湾节点, direct, 香港节点, 日本节点, 美国节点, 狮城节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Streaming.png"
   - "static=兜底分流, 全球加速, direct, 香港节点, 台湾节点, 日本节点, 狮城节点, 美国节点, proxy, 手动选择, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/Final.png"
   - "static=家庭网络, direct, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Home.png"
-
-#默认设置15分钟测速一次，可自行修改check-interval=后面的数值（单位：秒），tolerance=后面的数值不建议修改
-#将下面的url-latency-benchmark的内容替换成static，并删除[check-interval=900, tolerance=0, ]即可手动选择节点
-
+  - ""
+  - "#默认设置15分钟测速一次，可自行修改check-interval=后面的数值（单位：秒），tolerance=后面的数值不建议修改”
+  - "#将下面的url-latency-benchmark的内容替换成static，并删除[check-interval=900, tolerance=0, ]即可手动选择节点"
   - "static=手动选择, server-tag-regex=.*, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png"
-  - "static=美国节点, server-tag-regex=(?=.*(美|US|(?i)States|American))^((?!(港|台|日|韩|新)).)*$,  img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png"
+  - "static=美国节点, server-tag-regex=(?=.*(美|US|(?i)States|American))^((?!(港|台|日|韩|新)).)*$,img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png"
+  - ""
   - "url-latency-benchmark=自动选择, server-tag-regex=^(?!.*(?:网易|墨鱼)).*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png"
   - "url-latency-benchmark=香港节点, server-tag-regex=(?=.*(港|HK|(?i)Hong))^((?!(台|日|韩|新|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/HK.png"
   - "url-latency-benchmark=台湾节点, server-tag-regex=(?=.*(台|TW|(?i)Taiwan))^((?!(港|日|韩|新|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/TW.png"
   - "url-latency-benchmark=日本节点, server-tag-regex=(?=.*(日|JP|(?i)Japan))^((?!(港|台|韩|新|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/JP.png"
   - "url-latency-benchmark=狮城节点, server-tag-regex=(?=.*(新|狮|獅|SG|(?i)Singapore))^((?!(港|台|日|韩|美)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/SG.png"
-  #- "url-latency-benchmark=美国节点, server-tag-regex=(?=.*(美|US|(?i)States|American))^((?!(港|台|日|韩|新)).)*$, check-interval=900, tolerance=0, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png"
+
 # 2. 自定义 DNS
 dns:
   - "server=/suversal.com/192.168.1.1"    # 你的域名走内网DNS
@@ -109,7 +107,7 @@ local_filters:
 filter_remote:
   - name: "OpenAI"
     source: "blackmatrix7" # 内置源简写
-    policy: "proxy"
+    policy: "gpt"
     tag: "ChatGPT"
 
 # ------------------------------------------------------------------------------
