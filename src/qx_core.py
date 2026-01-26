@@ -1,152 +1,182 @@
-# src/qx_core.py
-
 import requests
 import re
+import os
+import logging
+import time
 from collections import OrderedDict
+
+# 全局日志配置
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S')
+logger = logging.getLogger("QX-Core")
 
 class QXConfigManager:
     def __init__(self):
-        # 使用 OrderedDict 保证写入文件时，配置段落的顺序（General -> DNS -> Policy...）不乱
         self.sections = OrderedDict()
-        # 记录当前解析到的段落名
-        self.current_section = "header"
-        # 初始化头部段落
+
+        # 定义标准顺序
+        standard_order = [
+            "general", "dns", "policy",
+            "server_local", "server_remote",
+            "filter_local", "filter_remote",
+            "rewrite_local", "rewrite_remote",
+            "task_local", "http_backend", "mitm"
+        ]
+
         self.sections["header"] = []
+        for sec in standard_order:
+            self.sections[sec] = []
+
+        self.current_section = "header"
+
+        # 统计数据
+        self.stats = {"files_read": 0, "rules_added": 0, "rules_removed": 0, "remote_refs": 0}
+
+        # 自动定位项目根目录
+        current_file_path = os.path.abspath(__file__)
+        self.project_root = os.path.dirname(os.path.dirname(current_file_path))
+        logger.info(f"📂 [Init] 项目根目录锁定: {self.project_root}")
 
     def load_from_url(self, url):
-        """
-        从 URL 下载原始配置内容
-        """
-        print(f"📥 [Core] 正在下载底包: {url} ...")
+        start_time = time.time()
+        logger.info(f"📥 [Base] 开始下载底包: {url}")
         try:
-            # 设置超时时间，防止网络卡死
-            resp = requests.get(url, timeout=15)
+            headers = {'User-Agent': 'QuantumultX-Builder/5.0'}
+            resp = requests.get(url, headers=headers, timeout=30)
             resp.raise_for_status()
-            # 开始解析文本
+            resp.encoding = 'utf-8' # 强制 UTF-8
+
+            size_kb = len(resp.content) / 1024
             self._parse(resp.text)
-            print("✅ [Core] 下载并解析成功")
+            elapsed = (time.time() - start_time) * 1000
+            logger.info(f"✅ [Base] 下载成功 | 耗时: {elapsed:.2f}ms | 大小: {size_kb:.2f}KB")
         except Exception as e:
-            print(f"❌ [Core] 下载失败: {e}")
-            raise e
+            logger.error(f"❌ [Base] 下载失败: {e}")
+            # 不抛出异常，允许无底包运行
 
     def _parse(self, content):
-        """
-        核心解析逻辑：利用正则将文本拆解为 Key-Value 结构的字典
-        """
         lines = content.splitlines()
-        # 正则匹配 [section_name]，例如 [general], [filter_local]
         section_pattern = re.compile(r'^\[(.*?)\]')
+        counts = {}
 
         for line in lines:
             line = line.strip()
             match = section_pattern.match(line)
-
             if match:
-                # 如果匹配到 [xxx]，切换当前上下文到该段落
                 self.current_section = match.group(1)
                 if self.current_section not in self.sections:
                     self.sections[self.current_section] = []
+                counts[self.current_section] = counts.get(self.current_section, 0)
             else:
-                # 否则，将该行内容追加到当前段落的列表中
                 self.sections[self.current_section].append(line)
+                if self.current_section in counts: counts[self.current_section] += 1
+
+        # 打印简要结构
+        active_secs = [k for k, v in counts.items() if v > 0]
+        logger.info(f"📊 [Parse] 解析段落: {', '.join(active_secs[:5])}...")
+
+    def load_rules_from_file(self, relative_path):
+        """读取文件，返回列表"""
+        abs_path = os.path.join(self.project_root, relative_path)
+
+        if not os.path.exists(abs_path):
+            # 只有当文件不是示例文件时才警告
+            if "my_custom" not in relative_path:
+                logger.warning(f"⚠️ [Local] 文件未找到: {abs_path}")
+            return []
+
+        logger.info(f"📖 [Local] 读取文件: {relative_path}")
+        rules = []
+        try:
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                # MITM 特殊处理
+                if "," in content and "\n" not in content and len(content) > 50:
+                    self.stats["files_read"] += 1
+                    return [content]
+
+                for line in content.splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("#") or line.startswith(";"): continue
+                    rules.append(line)
+
+            self.stats["files_read"] += 1
+            logger.info(f"   └── ✅ 成功加载: {len(rules)} 条有效规则")
+            return rules
+        except Exception as e:
+            logger.error(f"❌ [Local] 读取失败: {e}")
+            return []
 
     def patch_section(self, section, keywords, strategy="blacklist"):
-        """
-        【清洗器】对指定段落进行黑/白名单过滤
-        :param section: 段落名 (如 rewrite_remote)
-        :param keywords: 关键词列表
-        :param strategy: 'blacklist' (删除含关键词的行) / 'whitelist' (只留含关键词的行)
-        """
-        if section not in self.sections:
-            print(f"⚠️ [Core] 警告: 底包中不存在 [{section}] 段落，跳过清洗")
-            return
-
-        original_lines = self.sections[section]
+        if section not in self.sections: return
+        original = self.sections[section]
         new_lines = []
-        count_before = len(original_lines)
+        removed_count = 0
+
+        if not keywords: keywords = []
 
         if strategy == "blacklist":
-            # 黑名单模式：只要行内包含任意一个关键词，就过滤掉
-            for line in original_lines:
-                # 逻辑：如果这一行 不包含 关键词列表中的 任何一个
-                if not any(k in line for k in keywords):
-                    new_lines.append(line)
-
+            for line in original:
+                if not any(k in line for k in keywords): new_lines.append(line)
+                else: removed_count += 1
         elif strategy == "whitelist":
-            # 白名单模式：只有行内包含关键词，才保留
-            for line in original_lines:
-                if any(k in line for k in keywords):
-                    new_lines.append(line)
+            for line in original:
+                if any(k in line for k in keywords): new_lines.append(line)
+                else: removed_count += 1
 
-        # 更新段落内容
         self.sections[section] = new_lines
-        count_after = len(new_lines)
-        print(f"✂️ [Core] [{section}] 清洗完成 ({strategy}): 移除 {count_before - count_after} 条，剩余 {count_after} 条")
+        self.stats["rules_removed"] += removed_count
+        if removed_count > 0:
+            logger.info(f"✂️ [Patch] [{section}] 移除 {removed_count} 条规则")
 
-    def set_general(self, key, value):
-        """
-        修改或添加 [general] 下的配置 (如 GeoIP 源)
-        """
-        if "general" not in self.sections:
-            self.sections["general"] = []
-
+    def set_kv(self, section, key, value):
+        if section not in self.sections: self.sections[section] = []
         new_lines = []
         updated = False
+        target = [f"{key}=", f"{key} ="]
 
-        # 遍历查找是否存在该 Key
-        for line in self.sections["general"]:
-            # 兼容 key=value 和 key = value 两种写法
-            if line.strip().startswith(f"{key}=") or line.strip().startswith(f"{key} ="):
+        for line in self.sections[section]:
+            if any(line.strip().startswith(x) for x in target):
                 new_lines.append(f"{key}={value}")
                 updated = True
+                logger.info(f"⚙️ [{section}] 更新: {key} = ...")
             else:
                 new_lines.append(line)
-
-        # 如果没找到，追加到末尾
         if not updated:
             new_lines.append(f"{key}={value}")
-
-        self.sections["general"] = new_lines
+            logger.info(f"⚙️ [{section}] 新增: {key} = ...")
+        self.sections[section] = new_lines
 
     def add_list_item(self, section, item, position="end"):
-        """
-        向列表型段落 (如 filter_local) 添加规则
-        :param position: 'start' 插到最前 (高优先级), 'end' 插到最后 (兜底)
-        """
-        if section not in self.sections:
-            self.sections[section] = []
+        if section not in self.sections: self.sections[section] = []
+        if item in self.sections[section]: return
+        if position == "start": self.sections[section].insert(0, item)
+        else: self.sections[section].append(item)
+        self.stats["rules_added"] += 1
 
-        # 简单去重：如果完全一样就不加了
-        if item in self.sections[section]:
-            return
-
-        if position == "start":
-            self.sections[section].insert(0, item)
-        else:
-            self.sections[section].append(item)
-
-    def add_remote_rule(self, url, tag, policy, enabled=True):
-        """
-        生成 QX 标准的远程引用字符串
-        """
-        # opt-parser=true 是关键，让 QX 能够解析非标准 list
-        line = f"{url}, tag={tag}, force-policy={policy}, update-interval=86400, opt-parser=true, enabled={str(enabled).lower()}"
-        self.add_list_item("filter_remote", line, position="end")
+    def add_remote_rule(self, url, tag, policy):
+        line = f"{url}, tag={tag}, force-policy={policy}, update-interval=86400, opt-parser=true, enabled=true"
+        self.add_list_item("filter_remote", line)
+        self.stats["remote_refs"] += 1
+        logger.info(f"☁️ [Remote] 引用: {tag} -> {policy}")
 
     def save(self, filename):
-        """
-        将内存中的配置写入文件
-        """
+        logger.info(f"💾 [Save] 正在写入文件...")
         try:
+            total_lines = 0
             with open(filename, 'w', encoding='utf-8') as f:
                 for section, lines in self.sections.items():
-                    # 头部段落不需要写 [header] 标签
-                    if section != "header":
-                        f.write(f"\n[{section}]\n")
-                    for line in lines:
-                        # 忽略空行，或者你可以选择保留
-                        if line:
-                            f.write(f"{line}\n")
-            print(f"💾 [Core] 配置文件已生成: {filename}")
+                    if lines or section in ["general", "dns", "policy", "filter_local"]:
+                        if section != "header":
+                            f.write(f"\n[{section}]\n")
+                            total_lines += 1
+                        for line in lines:
+                            if line:
+                                f.write(f"{line}\n")
+                                total_lines += 1
+
+            size_kb = os.path.getsize(filename) / 1024
+            logger.info(f"✅ [Save] 生成成功: {filename}")
+            logger.info(f"📊 [Stats] 大小: {size_kb:.2f}KB | 总行数: {total_lines}")
+            logger.info(f"📈 [Summary] 读文件: {self.stats['files_read']} | 注入: {self.stats['rules_added']} | 删除: {self.stats['rules_removed']} | 远程: {self.stats['remote_refs']}")
         except Exception as e:
-            print(f"❌ [Core] 保存文件失败: {e}")
+            logger.error(f"❌ [Save] 保存失败: {e}")

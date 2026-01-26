@@ -1,0 +1,2 @@
+# 注意：QX 的 mitm hostname 必须是一行，用逗号分隔
+*.google.com, *.googleapis.com, *.apple.com, *.icloud.com, *.instagram.com
