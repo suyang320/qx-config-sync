@@ -97,7 +97,7 @@ local_filters:
     # 方式A: 引用 rules 目录下的文件 (如果文件不存在，脚本会自动跳过不报错)
     - "file://rules/my_custom.list"
     # 方式B: 直接写在这里
-    - "ip-cidr, 192.168.0.0/16, direct, tag=家庭网络"
+    - "ip-cidr, 192.168.0.0/16, direct, no-resolve, tag=家庭网络"
     # IPv6 直连（所有 IPv6 流量不走代理）
     - "ip6-cidr, ::/0, direct"
 
