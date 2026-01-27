@@ -28,7 +28,7 @@ patches:
       - "url-latency-benchmark" # 移除策略
 
   # 2. 排除不需要的 DNS
-  dns:
+  #dns:
     # 移除no-ipv6配置，开启ipv6
     #keywords: ["google","no-ipv6"]
 
