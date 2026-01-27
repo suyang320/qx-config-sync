@@ -126,6 +126,7 @@ rewrite_local:
 # ------------------------------------------------------------------------------
 rewrite_remote:
   - "https://limbopro.com/Adblock4limbo.conf, tag=毒奶特供(去网页广告计划), enabled=true"
+  - "https://raw.githubusercontent.com/Peng-YM/Sub-Store/master/config/QX.snippet, tag=Sub-store(高级订阅管理器), enabled=true"
 
 # ------------------------------------------------------------------------------
 # [其他] 任务与节点
