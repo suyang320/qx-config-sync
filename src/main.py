@@ -134,7 +134,11 @@ def main():
                     if rules:
                         logger.info(f"⚡️ [Inject] 向 [{section_name}] 注入 {len(rules)} 条规则")
                         for rule in rules:
-                            manager.add_list_item(section_name, rule)
+                            # 【修改】对于 rewrite_remote，强制插入到头部 (start)
+                            if section_name == "rewrite_remote":
+                                manager.add_list_item(section_name, rule, position="start")
+                            else:
+                                manager.add_list_item(section_name, rule)
 
     # 4. 专门处理本地分流 (Local Filters - 支持 top/bottom)
     if config and 'local_filters' in config:

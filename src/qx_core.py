@@ -155,9 +155,10 @@ class QXConfigManager:
 
     def add_remote_rule(self, url, tag, policy):
         line = f"{url}, tag={tag}, force-policy={policy}, update-interval=86400, opt-parser=true, enabled=true"
-        self.add_list_item("filter_remote", line)
+        # 【修改】改为插入到头部 (start)，确保优先级高于底包
+        self.add_list_item("filter_remote", line, position="start")
         self.stats["remote_refs"] += 1
-        logger.info(f"☁️ [Remote] 引用: {tag} -> {policy}")
+        logger.info(f"☁️ [Remote] 引用: {tag} -> {policy} (Top Priority)")
 
     def save(self, filename):
         logger.info(f"💾 [Save] 正在写入文件...")
