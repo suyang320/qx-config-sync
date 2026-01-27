@@ -136,9 +136,22 @@ class QXConfigManager:
 
         for line in self.sections[section]:
             if any(line.strip().startswith(x) for x in target):
-                new_lines.append(f"{key}={value}")
+                # 【修改】针对 hostname 特殊处理：追加而不是覆盖
+                if key == "hostname":
+                    # 提取原有值
+                    original_val = line.split("=", 1)[1].strip()
+                    # 避免重复追加
+                    if value not in original_val:
+                        new_val = f"{original_val}, {value}"
+                        new_lines.append(f"{key}={new_val}")
+                        logger.info(f"🔗 [MITM] 追加 hostname: ... + {value}")
+                    else:
+                        new_lines.append(line)
+                else:
+                    # 其他 KV 保持覆盖逻辑
+                    new_lines.append(f"{key}={value}")
+                    logger.info(f"⚙️ [{section}] 更新: {key} = ...")
                 updated = True
-                logger.info(f"⚙️ [{section}] 更新: {key} = ...")
             else:
                 new_lines.append(line)
         if not updated:
