@@ -30,7 +30,7 @@ patches:
   # 2. 排除不需要的 DNS
   dns:
     # 移除no-ipv6配置，开启ipv6
-    keywords: ["google","no-ipv6"]
+    #keywords: ["google","no-ipv6"]
 
   # 3. 排除不需要的本地分流 (慎用)
   # filter_local:
@@ -100,11 +100,11 @@ local_filters:
     - "file://rules/my_custom.list"
     # 方式B: 直接写在这里
     # IPv6 直连（所有 IPv6 流量不走代理）
-    - "ip6-cidr,::/0,direct"
+    #- "ip6-cidr,::/0,direct"
 
   # Bottom: 插到最后面 (优先级最低)
   bottom:
-    - "geoip,cn,direct"
+    #- "geoip,cn,direct"
 
 # 2. 远程分流规则引用
 filter_remote:
