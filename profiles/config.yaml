@@ -143,4 +143,4 @@ http_backend:
 mitm:
   # Hostname 列表 (追加/覆盖)
   # 这是一个很长的字符串，强烈建议放在文件里引用
-  hostname: "file://rules/my_mitm_hosts.list"
+  #hostname: "file://rules/my_mitm_hosts.list"
