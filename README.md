@@ -36,7 +36,19 @@
 你可以将此文件托管到 GitHub Gist 或私有仓库，然后在 Quantumult X 中引用该链接。
 
 ## 📂 项目结构
-
+```yaml
+qx-config-sync/
+├── profiles/
+│   └── config.yaml        # 你的核心配置文件
+├── rules/                 # (可选) 存放本地规则文件
+│   ├── my_custom.list
+│   └── my_mitm.list
+├── src/
+│   ├── main.py            # 主程序入口
+│   └── qx_core.py         # 核心处理逻辑
+├── MyQuantumultX.conf     # [生成] 最终配置文件
+└── README.md
+```
 ## 🛠 部分配置示例
 
 #### 基础源与订阅
