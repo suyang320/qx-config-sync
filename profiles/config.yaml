@@ -128,12 +128,12 @@ rewrite_remote:
   - "https://limbopro.com/Adblock4limbo.conf, tag=毒奶特供(去网页广告计划), enabled=true"
   - "https://raw.githubusercontent.com/Peng-YM/Sub-Store/master/config/QX.snippet, tag=Sub-store(高级订阅管理器), enabled=true"
   - "https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rewrite/PluginHub2QX.snippet, tag=Loon订阅转换, enabled=true"
-  - "https://kelee.one/Tool/Loon/Lpx/AppleWeatherEnhancer.lpx, tag=苹果天气增强, enabled=true"
-  - "https://kelee.one/Tool/Loon/Lpx/Tieba_remove_ads.lpx, tag=贴吧去广告, enabled=true"
-  - "https://kelee.one/Tool/Loon/Lpx/Cainiao_remove_ads.lpx, tag=菜鸟去广告, enabled=true"
-  - "https://kelee.one/Tool/Loon/Lpx/MojiWeather_remove_ads.lpx, tag=墨迹天气去广告, enabled=true"
-  - "https://kelee.one/Tool/Loon/Lpx/Weibo_remove_ads.lpx, tag=微博去广告, enabled=true"
-  - "https://kelee.one/Tool/Loon/Lpx/Weixin_Official_Accounts_remove_ads.lpx, tag=微信公众号去广告, enabled=true"
+  - "https://kelee.one/Tool/Loon/Lpx/AppleWeatherEnhancer.lpx, tag=苹果天气增强, enabled=true, opt-parser=true"
+  - "https://kelee.one/Tool/Loon/Lpx/Tieba_remove_ads.lpx, tag=贴吧去广告, enabled=true, opt-parser=true"
+  - "https://kelee.one/Tool/Loon/Lpx/Cainiao_remove_ads.lpx, tag=菜鸟去广告, enabled=true, opt-parser=true"
+  - "https://kelee.one/Tool/Loon/Lpx/MojiWeather_remove_ads.lpx, tag=墨迹天气去广告, enabled=true, opt-parser=true"
+  - "https://kelee.one/Tool/Loon/Lpx/Weibo_remove_ads.lpx, tag=微博去广告, enabled=true, opt-parser=true"
+  - "https://kelee.one/Tool/Loon/Lpx/Weixin_Official_Accounts_remove_ads.lpx, tag=微信公众号去广告, enabled=true, opt-parser=true"
 
 # ------------------------------------------------------------------------------
 # [其他] 任务与节点
