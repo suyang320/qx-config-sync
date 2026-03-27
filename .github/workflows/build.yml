@@ -37,6 +37,10 @@ jobs:
       # 4. 执行构建脚本
       - name: Run Builder
         run: python src/main.py
+        env:
+          GITHUB_RAW_PREFIX: ${{ secrets.GITHUB_RAW_PREFIX }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
       # 5. 提交生成的文件回仓库
       - name: Commit and Push
