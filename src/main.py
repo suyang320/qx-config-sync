@@ -32,7 +32,7 @@ RULES_DIR = os.path.join(BASE_DIR, "rules")
 # 🔴 GitHub 仓库 Raw 链接前缀配置
 # ==========================================
 # 优先从环境变量读取，读取不到则使用这里配置的值
-GITHUB_RAW_PREFIX = "https://raw.githubusercontent.com/suversal/qx-config-sync/main/rules"
+URL_RAW_PREFIX = "https://raw.githubusercontent.com/suversal/qx-config-sync/main/rules"
 
 # ==========================================
 # 📱 Telegram 通知配置 (可选)
@@ -353,9 +353,9 @@ def main():
 
         # 7. 抓取远程文件，并修改内存中的链接配置
         # 优先从环境变量读取，读取不到使用代码中配置的值
-        github_raw_prefix = os.environ.get('GITHUB_RAW_PREFIX', GITHUB_RAW_PREFIX)
+        url_raw_prefix = os.environ.get('URL_RAW_PREFIX', URL_RAW_PREFIX)
         print("-" * 50)
-        download_stats = localize_remote_rules(manager, github_raw_prefix)
+        download_stats = localize_remote_rules(manager, url_raw_prefix)
 
         # 8. 第二次保存：输出替换为你个人仓库直链的新配置文件
         print("-" * 50)
