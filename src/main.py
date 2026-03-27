@@ -362,18 +362,35 @@ def main():
         logger.info(f"💾 [Step] 第二次保存: 生成本地化后的全新配置文件 -> {os.path.basename(LOCALIZED_OUTPUT_FILE)}")
         manager.save(LOCALIZED_OUTPUT_FILE)
 
-        # 检查文件变化
-        logger.info("🔍 [Check] 检查配置文件是否有变化...")
+        # 检查文件变化 (配置文件 + 下载的规则目录)
+        logger.info("🔍 [Check] 检查配置文件和规则是否有变化...")
         changed_files = []
+        # 检查输出配置文件
         for f in [OUTPUT_FILE, LOCALIZED_OUTPUT_FILE]:
             if check_file_changed(f):
                 changed_files.append(f)
 
+        # 检查规则目录中的变化
+        import subprocess
+        try:
+            result = subprocess.run(
+                ["git", "status", "--porcelain", "rules/filter_remote/", "rules/rewrite_remote/"],
+                capture_output=True,
+                text=True
+            )
+            output = result.stdout.strip()
+            if output:
+                # 有变化，添加目录
+                changed_files.append(os.path.join(RULES_DIR, "filter_remote"))
+                changed_files.append(os.path.join(RULES_DIR, "rewrite_remote"))
+        except Exception as e:
+            logger.debug(f"⚠️ 检查规则目录变化失败: {e}")
+
         if changed_files:
             changed_names = [os.path.basename(f) for f in changed_files]
-            logger.info(f"📢 检测到配置文件有变化: {', '.join(changed_names)}")
+            logger.info(f"📢 检测到有文件变化: {', '.join(changed_names)}")
         else:
-            logger.info("✓ 配置文件无变化")
+            logger.info("✓ 无文件变化")
 
         logger.info("✨ === Build Complete ===")
 
