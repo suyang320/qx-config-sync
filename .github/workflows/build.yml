@@ -41,3 +41,15 @@ jobs:
           URL_RAW_PREFIX: ${{ secrets.URL_RAW_PREFIX }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      # 5. 提交生成的文件回仓库
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "QX Builder"
+          # 添加生成的文件和下载的规则
+          git add MyQuantumultX.conf MyQuantumultX_Local.conf
+          git add rules/filter_remote/ rules/rewrite_remote/
+          # 如果文件有变化则提交，没变化则跳过 (防止报错)
+          git diff-index --quiet HEAD || git commit -m "Auto-build config $(date +'%Y-%m-%d')"
+          git push
