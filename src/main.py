@@ -2,6 +2,8 @@ import yaml
 import os
 import sys
 import logging
+import urllib.request
+import re
 
 # === 【关键修复】确保能导入 qx_core ===
 # 获取当前脚本所在目录 (src)
@@ -22,7 +24,13 @@ except ImportError as e:
 BASE_DIR = os.path.dirname(current_dir)
 CONFIG_PATH = os.path.join(BASE_DIR, "profiles", "config.yaml")
 OUTPUT_FILE = os.path.join(BASE_DIR, "MyQuantumultX.conf")
+LOCALIZED_OUTPUT_FILE = os.path.join(BASE_DIR, "MyQuantumultX_Local.conf")
 RULES_DIR = os.path.join(BASE_DIR, "rules")
+
+# ==========================================
+# 🔴 在这里配置你的 GitHub 仓库 Raw 链接前缀
+# ==========================================
+GITHUB_RAW_PREFIX = "https://raw.githubusercontent.com/suversal/qx-config-sync/main/rules"
 
 # KV 类型的节点 (覆盖式)
 KV_SECTIONS = {"general", "mitm", "http_backend"}
@@ -79,6 +87,64 @@ def resolve_rules(manager, raw_rules, mapping=None):
                         rule = rule.replace(f", {k},", f", {v},")
             final_rules.append(rule)
     return final_rules
+
+def localize_remote_rules(manager, github_prefix):
+    """抓取远程链接并保存到本地，替换为自己的仓库链接"""
+    logger.info("🌐 [Localize] 开始抓取并本地化远程规则链接...")
+    sections_to_process = ["filter_remote", "rewrite_remote"]
+    
+    for sec in sections_to_process:
+        if sec not in manager.sections:
+            continue
+            
+        new_lines = []
+        sec_dir = os.path.join(RULES_DIR, sec)
+        if not os.path.exists(sec_dir):
+            os.makedirs(sec_dir)
+            
+        for line in manager.sections[sec]:
+            if not line or line.startswith("#") or line.startswith(";"):
+                new_lines.append(line)
+                continue
+                
+            # 正则匹配提取 URL 和后面的参数(如 tag=xxx)
+            match = re.match(r'^(https?://[^,]+)(.*)$', line.strip())
+            if match:
+                original_url = match.group(1)
+                rest_of_line = match.group(2)
+                
+                # 提取文件名
+                file_name = original_url.split('/')[-1]
+                if "?" in file_name: file_name = file_name.split("?")[0]
+                if not file_name: file_name = "unknown.txt"
+                    
+                local_path = os.path.join(sec_dir, file_name)
+                
+                logger.info(f"⬇️ 正在下载: {file_name}")
+                logger.info(f"   🔗 源地址: {original_url}")
+                logger.info(f"   📁 保存至: {local_path}")
+                
+                try:
+                    # 模拟 QX 客户端的 UA
+                    req = urllib.request.Request(original_url, headers={'User-Agent': 'Quantumult X/1.0.31'})
+                    with urllib.request.urlopen(req, timeout=30) as response:
+                        content = response.read()
+                        with open(local_path, 'wb') as f:
+                            f.write(content)
+                        size_kb = len(content) / 1024
+                        logger.info(f"   ✅ 下载成功! 文件大小: {size_kb:.2f} KB")
+                            
+                    # 替换为自己的 GitHub 链接
+                    new_url = f"{github_prefix}/{sec}/{file_name}"
+                    new_lines.append(f"{new_url}{rest_of_line}")
+                except Exception as e:
+                    logger.error(f"  ❌ 下载失败 {original_url}: {e}")
+                    new_lines.append(line) # 下载失败则保留原链接，防止丢失
+            else:
+                new_lines.append(line)
+                
+        # 更新内存中的配置列表
+        manager.sections[sec] = new_lines
 
 def main():
     logger.info("🚀 === QX Builder V5.1 (Fixed) Started ===")
@@ -174,9 +240,20 @@ def main():
             if url:
                 manager.add_remote_rule(url, item.get('tag', 'Remote'), policy_map.get(item.get('policy'), item.get('policy')))
 
-    # 6. 保存
+    # 6. 第一次保存：输出合并后的原始配置文件
     print("-" * 50)
+    logger.info(f"💾 [Step] 第一次保存: 生成原始配置文件 -> {os.path.basename(OUTPUT_FILE)}")
     manager.save(OUTPUT_FILE)
+    
+    # 7. 抓取远程文件，并修改内存中的链接配置
+    print("-" * 50)
+    localize_remote_rules(manager, GITHUB_RAW_PREFIX)
+    
+    # 8. 第二次保存：输出替换为你个人仓库直链的新配置文件
+    print("-" * 50)
+    logger.info(f"💾 [Step] 第二次保存: 生成本地化后的全新配置文件 -> {os.path.basename(LOCALIZED_OUTPUT_FILE)}")
+    manager.save(LOCALIZED_OUTPUT_FILE)
+    
     logger.info("✨ === Build Complete ===")
 
 if __name__ == "__main__":
