@@ -370,7 +370,7 @@ def main():
             if check_file_changed(f):
                 changed_files.append(f)
 
-        # 检查规则目录中的变化
+        # 检查规则目录中的变化，列出每个变化的文件
         import subprocess
         try:
             result = subprocess.run(
@@ -380,9 +380,15 @@ def main():
             )
             output = result.stdout.strip()
             if output:
-                # 有变化，添加目录
-                changed_files.append(os.path.join(RULES_DIR, "filter_remote"))
-                changed_files.append(os.path.join(RULES_DIR, "rewrite_remote"))
+                # 解析每一行，提取变化的文件路径
+                for line in output.splitlines():
+                    line = line.strip()
+                    if not line:
+                        continue
+                    # git status --porcelain 格式是 " M path/to/file"
+                    parts = line.split(None, 1)
+                    if len(parts) == 2:
+                        changed_files.append(parts[1])
         except Exception as e:
             logger.debug(f"⚠️ 检查规则目录变化失败: {e}")
 
