@@ -17,6 +17,9 @@ host,*.smoot.apple.com,美国节点
 host-suffix,apple-relay.akamaized.net,美国节点
 host-suffix,apple-relay.mask.apple-dns.net,美国节点
 
+# App Store 美区节点下可能会导致App Store无法打开
+HOST, APPS.MZSTATIC.COM, direct
+
 # 网易云音乐听歌统计
 host-suffix,clientlog.music.163.com,direct
 host-suffix,clientlog3.music.163.com,direct
