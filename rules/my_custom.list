@@ -4,6 +4,9 @@ host-suffix,shenlong.wiki,美国节点
 # 我的网站域名
 host-suffix,suversal.com,direct
 
+#CM
+host-suffix,cmliussss.com,美国节点
+
 # Apple Intelligence
 host,apple-relay.apple.com,美国节点
 host,apple-relay.fastly-edge.com,美国节点
